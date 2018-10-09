@@ -68,7 +68,7 @@ class MinitaurBase(WalkerBase):
     def __init__(self, config, env=None,
                  pd_control_enabled=True,
                  accurate_motor_model_enabled=True,
-                 use_controller='forward'):
+                 use_controller=None):
         """Constructs a minitaur and reset it to the initial states.
 
         Properties:
@@ -128,6 +128,8 @@ class MinitaurBase(WalkerBase):
                 self.controller = ForwardSinePolicyController(time_step=self.time_step)
             elif use_controller == 'vector':
                 self.controller = VectorSinePolicyController(time_step=self.time_step)
+            if self.controller.action_space:
+                self.action_space = self.controller.action_space
 
         if config["is_discrete"]:
             self.action_space = gym.spaces.Discrete(17)
@@ -613,8 +615,8 @@ class Minitaur(MinitaurBase):
         self.calc_state()
         self.addToScene()
     '''
-    def __init__(self, config, env, pd_control_enabled=True, accurate_motor_model_enabled=True):
-        MinitaurBase.__init__(self, config, env, pd_control_enabled, accurate_motor_model_enabled)
+    def __init__(self, config, env, pd_control_enabled=True, accurate_motor_model_enabled=True, use_controller=None):
+        MinitaurBase.__init__(self, config, env, pd_control_enabled, accurate_motor_model_enabled, use_controller)
 
     def calc_state(self):
         MinitaurBase.GetObservation(self)

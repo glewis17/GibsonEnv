@@ -23,6 +23,7 @@ Current:
 from gibson.envs.env_modalities import CameraRobotEnv, BaseRobotEnv
 from gibson.envs.env_bases import *
 from gibson.core.physics.drivers.minitaur import Minitaur
+from gibson.core.physics.drivers.minitaur_controllers import ForwardSinePolicyController, VectorSinePolicyController
 import os, inspect
 import math
 import time
@@ -40,14 +41,14 @@ ACTION_EPS = 0.01
 
 
 tracking_camera = {
-    'yaw': 40,
+    'yaw': 0,
     'z_offset': 0.3,
     'distance': 1,
     'pitch': -0
 }
 
 
-class MinitaurNavigateEnv(CameraRobotEnv):
+class MinitaurBaseEnv(CameraRobotEnv):
     """The gym environment for the minitaur.
 
     It simulates the locomotion of a minitaur, a quadruped robot. The state space
@@ -60,6 +61,7 @@ class MinitaurNavigateEnv(CameraRobotEnv):
     energy_weight = 0.005
     shake_weight = 0.0
     drift_weight = 0.0
+
     distance_limit = float("inf")
     observation_noise_stdev = 0.0
     action_bound = 1
@@ -73,7 +75,7 @@ class MinitaurNavigateEnv(CameraRobotEnv):
     NUM_SUBSTEPS = 5     # PD control needs smaller time step for stability.
 
 
-    def __init__(self, config, gpu_count=0):
+    def __init__(self, config, controller=None, gpu_count=0):
         """Initialize the minitaur gym environment.
         Args:
             distance_weight: The weight of the distance term in the reward.
@@ -92,7 +94,6 @@ class MinitaurNavigateEnv(CameraRobotEnv):
         """
     
         self.config = self.parse_config(config)
-        assert(self.config["envname"] == self.__class__.__name__ or self.config["envname"] == "TestEnv")
 
         CameraRobotEnv.__init__(self, self.config, gpu_count, 
                                 scene_type="building",
@@ -100,7 +101,8 @@ class MinitaurNavigateEnv(CameraRobotEnv):
 
         self.robot_introduce(Minitaur(self.config, env=self, 
                                       pd_control_enabled=self.pd_control_enabled,
-                                      accurate_motor_model_enabled=self.accurate_motor_model_enabled))
+                                      accurate_motor_model_enabled=self.accurate_motor_model_enabled,
+                                      use_controller=controller))
         self.scene_introduce()
         self.gui = self.config["mode"] == "gui"
         self.total_reward = 0
@@ -176,9 +178,6 @@ class MinitaurNavigateEnv(CameraRobotEnv):
           ValueError: The action dimension is not the same as the number of motors.
           ValueError: The magnitude of actions is out of bounds.
         """
-        #print("Env apply raw action", action)
-        #action = self._transform_action_to_motor_command(action)
-        #print("Env apply action", action)
     
         #for _ in range(self._action_repeat):
         #  self.robot.ApplyAction(action)
@@ -257,24 +256,6 @@ class MinitaurNavigateEnv(CameraRobotEnv):
         #return self.is_fallen() or distance > self.distance_limit
         return False
 
-    def _rewards(self, action=None, debugmode=False):
-        a = action
-        current_base_position = self.robot.GetBasePosition()
-        forward_reward = current_base_position[0] - self._last_base_position[0]
-        drift_reward = -abs(current_base_position[1] - self._last_base_position[1])
-        shake_reward = -abs(current_base_position[2] - self._last_base_position[2])
-        self._last_base_position = current_base_position
-        energy_reward = np.abs(
-            np.dot(self.robot.GetMotorTorques(),
-                   self.robot.GetMotorVelocities())) * self.timestep
-        reward = (
-            self.distance_weight * forward_reward -
-            self.energy_weight * energy_reward + self.drift_weight * drift_reward
-            + self.shake_weight * shake_reward)
-        self._objectives.append(
-            [forward_reward, energy_reward, drift_reward, shake_reward])
-        return [reward, ]
-
     def get_objectives(self):
         return self._objectives
 
@@ -291,6 +272,14 @@ class MinitaurNavigateEnv(CameraRobotEnv):
                           self.robot.GetObservationUpperBound())
         return observation
 
+class MinitaurForwardWalkEnv(MinitaurBaseEnv):
+    def __init__(self, config, gpu_count=0):
+        self.config = self.parse_config(config)
+        assert(self.config["envname"] == self.__class__.__name__ or self.config["envname"] == "Test Env")
+        MinitaurBaseEnv.__init__(self, config, controller='forward', gpu_count=gpu_count)
+
+    def _rewards(self, action=None, debugmode=False):
+        return [0,]
 
     #==================== Environemnt Randomizer ====================
     ## (hzyjerry) TODO: still under construction, not ready to use
