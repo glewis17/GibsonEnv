@@ -281,6 +281,17 @@ class MinitaurForwardWalkEnv(MinitaurBaseEnv):
     def _rewards(self, action=None, debugmode=False):
         return [0,]
 
+class MinitaurVectorServoingEnv(MinitaurBaseEnv):
+    def __init__(self, config, gpu_count=0):
+        self.config = self.parse_config(config)
+        assert(self.config["envname"] == self.__class__.__name__ or self.config["envname"] == "Test Env")
+        MinitaurBaseEnv.__init__(self, config, controller='vector', gpu_count=gpu_count)
+        print("MinitaurVectorServoingEnv action space: " + str(self.action_space))
+        exit()
+
+    def _rewards(self, action=None, debugmode=False):
+        return [0,]
+
     #==================== Environemnt Randomizer ====================
     ## (hzyjerry) TODO: still under construction, not ready to use
 
