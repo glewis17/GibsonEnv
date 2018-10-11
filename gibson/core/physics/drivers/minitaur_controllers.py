@@ -43,6 +43,7 @@ class VectorSinePolicyController(SinePolicyController):
         self.action_space = gym.spaces.Box(action_lower_bounds, action_upper_bounds)
 
     def translate_action_to_motor_commands(self, a):
+        print("action: " + str(a))
         phi, r = a
         # this constant translates +- pi/2 constraint to +- 3 steering amplitude
         c = -6. / math.pi

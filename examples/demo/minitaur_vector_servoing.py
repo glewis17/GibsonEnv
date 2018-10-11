@@ -10,9 +10,11 @@ if __name__ == '__main__':
     parser.add_argument('--config', type=str, default=config_file)
     args = parser.parse_args()
 
-    env = MinitaurForwardWalkEnv(config = args.config)
+    env = MinitaurVectorServoingEnv(config = args.config)
 
     env.reset()
-    action = [0]*8
+    phi = 0
+    speed_frac = .5
+    action = [phi, speed_frac]
     while True:
       env.step(action)

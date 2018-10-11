@@ -23,7 +23,6 @@ Current:
 from gibson.envs.env_modalities import CameraRobotEnv, BaseRobotEnv
 from gibson.envs.env_bases import *
 from gibson.core.physics.drivers.minitaur import Minitaur
-from gibson.core.physics.drivers.minitaur_controllers import ForwardSinePolicyController, VectorSinePolicyController
 import os, inspect
 import math
 import time
@@ -182,9 +181,9 @@ class MinitaurBaseEnv(CameraRobotEnv):
         #for _ in range(self._action_repeat):
         #  self.robot.ApplyAction(action)
         #  pybullet.stepSimulation()
-        for i in range(len(self.Amax)):
-            if action[i] > self.Amax[i]:
-                self.Amax[i] = action[i]
+        #for i in range(len(self.Amax)):
+        #    if action[i] > self.Amax[i]:
+        #        self.Amax[i] = action[i]
         #print("Action max", self.Amax)
         for _ in range(self.action_repeat):
             state = CameraRobotEnv._step(self, action)
@@ -286,8 +285,6 @@ class MinitaurVectorServoingEnv(MinitaurBaseEnv):
         self.config = self.parse_config(config)
         assert(self.config["envname"] == self.__class__.__name__ or self.config["envname"] == "Test Env")
         MinitaurBaseEnv.__init__(self, config, controller='vector', gpu_count=gpu_count)
-        print("MinitaurVectorServoingEnv action space: " + str(self.action_space))
-        exit()
 
     def _rewards(self, action=None, debugmode=False):
         return [0,]

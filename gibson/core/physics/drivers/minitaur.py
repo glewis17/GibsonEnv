@@ -7,7 +7,7 @@ import numpy as np
 from gibson.core.physics import motor
 from gibson.core.physics.robot_locomotors import WalkerBase
 from gibson.core.physics.robot_bases import Joint, BodyPart
-from gibson.core.physics.drivers.minitaur_controllers import ForwardSinePolicyController
+from gibson.core.physics.drivers.minitaur_controllers import *
 import os, sys
 import pybullet as p
 import gym
