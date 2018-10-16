@@ -73,8 +73,7 @@ class MinitaurBaseEnv(CameraRobotEnv):
     accurate_motor_model_enabled = True
     NUM_SUBSTEPS = 5     # PD control needs smaller time step for stability.
 
-
-    def __init__(self, config, controller=None, gpu_count=0):
+    def __init__(self, config, controller=None, step_limit=None, gpu_count=0):
         """Initialize the minitaur gym environment.
         Args:
             distance_weight: The weight of the distance term in the reward.
@@ -106,6 +105,8 @@ class MinitaurBaseEnv(CameraRobotEnv):
         self.gui = self.config["mode"] == "gui"
         self.total_reward = 0
         self.total_frame = 0
+        self.step_limit = step_limit
+        self.steps = 0
 
         self.action_repeat = 1
         ## Important: PD controller needs more accuracy
@@ -187,6 +188,7 @@ class MinitaurBaseEnv(CameraRobotEnv):
         #print("Action max", self.Amax)
         for _ in range(self.action_repeat):
             state = CameraRobotEnv._step(self, action)
+        self.steps += 1
         return state
 
     step  = _step
@@ -252,6 +254,8 @@ class MinitaurBaseEnv(CameraRobotEnv):
     def _termination(self, state=None, debugmode=False):
         position = self.robot.GetBasePosition()
         distance = math.sqrt(position[0]**2 + position[1]**2)
+        if self.step_limit:
+            return self.steps > self.step_limit
         #return self.is_fallen() or distance > self.distance_limit
         return False
 
@@ -284,10 +288,10 @@ class MinitaurVectorServoingEnv(MinitaurBaseEnv):
 
     distance_weight = 1.0
 
-    def __init__(self, config, gpu_count=0):
+    def __init__(self, config, step_limit=None, gpu_count=0):
         self.config = self.parse_config(config)
         assert(self.config["envname"] == self.__class__.__name__ or self.config["envname"] == "Test Env")
-        MinitaurBaseEnv.__init__(self, config, controller='vector', gpu_count=gpu_count)
+        MinitaurBaseEnv.__init__(self, config, controller='vector', step_limit=step_limit, gpu_count=gpu_count)
 
     def _rewards(self, action=None, debugmode=False):
         if self._last_base_position is None:

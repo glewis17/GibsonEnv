@@ -90,9 +90,9 @@ class Runner(object):
         self.env = env
         self.model = model
         #nenv = env.num_envs
-        nenv = 1
-        self.obs = np.zeros((nenv,) + env.observation_space.shape, dtype=model.train_model.X.dtype.name)
-        self.obs_sensor = np.zeros((nenv,) + env.sensor_space.shape, dtype=model.train_model.X.dtype.name)
+        self.nenv = 1
+        self.obs = np.zeros((self.nenv,) + env.observation_space.shape, dtype=model.train_model.X.dtype.name)
+        self.obs_sensor = np.zeros((self.nenv,) + env.sensor_space.shape, dtype=model.train_model.X.dtype.name)
         print(self.obs.shape)
         print(self.obs_sensor.shape)
         obs_all = self.env.reset()
@@ -102,7 +102,8 @@ class Runner(object):
         if sensor:
             self.obs = self.obs_sensor
         else:
-            self.obs[:] = np.concatenate([obs_all['rgb_filled'], obs_all['depth']], axis=2)
+            #self.obs[:] = np.concatenate([obs_all['rgb_filled'], obs_all['depth']], axis=2)
+            self._getObs(obs_all)
         self.gamma = gamma
         self.lam = lam
         self.nsteps = nsteps
@@ -110,6 +111,12 @@ class Runner(object):
         #self.dones = [False for _ in range(nenv)]
         self.dones = False
 
+    def _getObs(self, obs_all):
+        self.obs = np.zeros((self.nenv,) + self.env.observation_space.shape[:-1] + (0,), dtype=self.model.train_model.X.dtype.name)
+        for modality in obs_all:
+            if not modality == 'nonviz_sensor':
+                obs_all[modality] = obs_all[modality][np.newaxis, :, :, :]
+                self.obs = np.concatenate([self.obs, obs_all[modality]], axis=3)
 
     def run(self):
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [],[],[],[],[],[]
@@ -131,7 +138,8 @@ class Runner(object):
                 if self.sensor:
                     self.obs = self.obs_sensor
                 else:
-                    self.obs[:] = np.concatenate([obs_all['rgb_filled'], obs_all['depth']], axis=2)
+                    #self.obs[:] = np.concatenate([obs_all['rgb_filled'], obs_all['depth']], axis=2)
+                    self._getObs(obs_all)
                 rewards = 0
                 self.dones = False
             else:
@@ -140,7 +148,8 @@ class Runner(object):
                 if self.sensor:
                     self.obs = self.obs_sensor
                 else:
-                    self.obs[:] = np.concatenate([obs_all['rgb_filled'], obs_all['depth']], axis=2)
+                    #self.obs[:] = np.concatenate([obs_all['rgb_filled'], obs_all['depth']], axis=2)
+                    self._getObs(obs_all)
                 #print("PPO2", rewards, self.dones)
                 if 'sensor' in infos:
                     ob_sensor = infos['sensor']
