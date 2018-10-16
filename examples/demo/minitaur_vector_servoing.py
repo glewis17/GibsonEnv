@@ -1,6 +1,7 @@
 from gibson.envs.minitaur_env import MinitaurVectorServoingEnv
 import argparse
 import math
+import numpy as np
 import os
 
 config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'configs', 'minitaur_vector_servoing.yaml')
@@ -13,8 +14,8 @@ if __name__ == '__main__':
     env = MinitaurVectorServoingEnv(config = args.config)
 
     env.reset()
-    phi = 0
-    speed_frac = .5
+    phi = 0.
+    speed_frac = 1.
     action = [phi, speed_frac]
     while True:
       env.step(action)

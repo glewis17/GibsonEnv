@@ -38,16 +38,16 @@ class ForwardSinePolicyController(SinePolicyController):
 class VectorSinePolicyController(SinePolicyController):
     def __init__(self, time_step=.001):
         SinePolicyController.__init__(self, time_step=time_step)
-        action_lower_bounds = np.array([-np.pi/2., 0.5])
-        action_upper_bounds = np.array([np.pi/2., 1.])
-        self.action_space = gym.spaces.Box(action_lower_bounds, action_upper_bounds)
+        self.action_lower_bounds = np.array([-np.pi/3., .3])
+        self.action_upper_bounds = np.array([np.pi/3., 1.])
+        self.action_space = gym.spaces.Box(self.action_lower_bounds, self.action_upper_bounds)
 
     def translate_action_to_motor_commands(self, a):
-        print("action: " + str(a))
+        print("VectorSinePolicyController: input action: " + str(a))
         phi, r = a
-        # this constant translates +- pi/2 constraint to +- 3 steering amplitude
-        c = -6. / math.pi
+        # this constant translates +- pi/3 constraint to +- 2 steering amplitude
+        c = -6. / np.pi
         steering_amplitude = c*phi
-        amplitude_1 = max(r + steering_amplitude, .5)
-        amplitude_2 = max(r - steering_amplitude, .5)
+        amplitude_1 = max(r + steering_amplitude, self.action_lower_bounds[1])
+        amplitude_2 = max(r - steering_amplitude, self.action_lower_bounds[1])
         return self.get_motor_commands(amplitude_1, amplitude_2)
