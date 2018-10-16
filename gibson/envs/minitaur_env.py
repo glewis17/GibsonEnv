@@ -121,7 +121,7 @@ class MinitaurBaseEnv(CameraRobotEnv):
         pybullet.setPhysicsEngineParameter(physicsClientId=self.physicsClientId,
               numSolverIterations=int(self.num_bullet_solver_iterations))
         self._observation = []
-        self._last_base_position = [0, 0, 0]
+        self._last_base_position = None
         self._action_bound = self.action_bound
         
         self._env_randomizer = self.env_randomizer        
@@ -281,13 +281,25 @@ class MinitaurForwardWalkEnv(MinitaurBaseEnv):
         return [0,]
 
 class MinitaurVectorServoingEnv(MinitaurBaseEnv):
+
+    distance_weight = 1.0
+
     def __init__(self, config, gpu_count=0):
         self.config = self.parse_config(config)
         assert(self.config["envname"] == self.__class__.__name__ or self.config["envname"] == "Test Env")
         MinitaurBaseEnv.__init__(self, config, controller='vector', gpu_count=gpu_count)
 
     def _rewards(self, action=None, debugmode=False):
-        return [0,]
+        if self._last_base_position is None:
+            self._last_base_position = np.array(self.robot.GetBasePosition())
+        current_base_position = np.array(self.robot.GetBasePosition())
+        # assume minitaur can only locomote forward
+        forward_reward = np.linalg.norm(current_base_position - self._last_base_position)
+        self._last_base_position = np.array(self.robot.GetBasePosition())
+        reward = []
+        reward.append( self.distance_weight*forward_reward )
+        reward = sum(reward)
+        return [reward,]
 
     #==================== Environemnt Randomizer ====================
     ## (hzyjerry) TODO: still under construction, not ready to use
