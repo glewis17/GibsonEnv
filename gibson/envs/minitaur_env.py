@@ -139,6 +139,11 @@ class MinitaurBaseEnv(CameraRobotEnv):
     def configure(self, args):
         self._args = args
 
+    def reset(self):
+        obs = CameraRobotEnv._reset(self)
+        self.steps = 0
+        return obs
+
     #def _reset(self):
         #if self._env_randomizer is not None:
         #    self._env_randomizer.randomize_env(self)
@@ -255,7 +260,7 @@ class MinitaurBaseEnv(CameraRobotEnv):
         position = self.robot.GetBasePosition()
         distance = math.sqrt(position[0]**2 + position[1]**2)
         if self.step_limit:
-            return self.steps > self.step_limit
+            return self.steps >= self.step_limit
         #return self.is_fallen() or distance > self.distance_limit
         return False
 

@@ -122,7 +122,8 @@ class Runner(object):
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [],[],[],[],[],[]
         mb_states = self.states
         epinfos = []
-        for _ in range(self.nsteps):
+        for cur_step in range(self.nsteps):
+            print("Runner.run: cur_step: " + str(cur_step) + "/" + str(self.nsteps))
             #with Profiler("PPO2 step"):
             actions, values, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
             #print("actions", actions)
@@ -246,6 +247,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     tfirststart = time.time()
 
     nupdates = total_timesteps//nbatch
+    print("nbatch: " + str(nbatch))
+    print("nminibatches: " + str(nminibatches))
     for update in range(1, nupdates+1):
         assert nbatch % nminibatches == 0
         nbatch_train = nbatch // nminibatches
@@ -299,6 +302,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
             for (lossval, lossname) in zip(lossvals, model.loss_names):
                 logger.logkv(lossname, lossval)
             logger.dumpkvs()
+        print("PPO2: model update: " + str(update) + "/" + str(nupdates))
         if save_interval and (update % save_interval == 0 or update == 1) and logger.get_dir():
             checkdir = os.path.dirname(os.path.abspath(__file__))
             print(checkdir)

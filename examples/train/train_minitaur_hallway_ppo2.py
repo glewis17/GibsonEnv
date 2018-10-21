@@ -46,8 +46,13 @@ def train(num_timesteps, seed):
     config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'configs', 'minitaur_hallway_rgb_train.yaml')
     print(config_file)
 
+    step_limit = 1000
+    num_eps_per_batch = 3
+    nbatch_size = int(step_limit*num_eps_per_batch)
+    nminibatches=5
+
     raw_env = MinitaurVectorServoingEnv(gpu_count=args.gpu_count,
-                                step_limit=4000,
+                                step_limit=(step_limit-1),
                                 config=config_file)
 
     env = Monitor(raw_env, logger.get_dir() and
@@ -58,13 +63,13 @@ def train(num_timesteps, seed):
 
     policy_fn = MlpPolicy if args.mode == "SENSOR" else CnnPolicy2
 
-    ppo2.learn(policy=policy_fn, env=env, nsteps=8000, nminibatches=4,
+    ppo2.learn(policy=policy_fn, env=env, nsteps=nbatch_size, nminibatches=nminibatches,
         lam=0.95, gamma=0.99, noptepochs=4, log_interval=1,
         ent_coef=.1,
         lr=lambda f : f * 2e-4,
         cliprange=lambda f : f * 0.2,
         total_timesteps=int(num_timesteps * 1.1),
-        save_interval=8000,
+        save_interval=5,
         sensor= False,
         reload_name=args.reload_name)
     
