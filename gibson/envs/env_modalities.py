@@ -184,6 +184,13 @@ class BaseRobotEnv(BaseEnv):
     def _step(self, a):
         self.nframe += 1
         if not self.scene.multiplayer:  # if multiplayer, action first applied to all robots, then global step() called, then _step() for all robots with the same actions
+            # enforce action space bounds
+            # TODO: enforce action space bounds in the policy output
+            for i in range(len(a)):
+                if a[i] > self.action_space.high[i]:
+                    a[i] = self.action_space.high[i]
+                elif a[i] < self.action_space.low[i]:
+                    a[i] = self.action_space.low[i]
             for _ in range(self.frame_skip):
                 self.robot.apply_action(a)
                 self.scene.global_step()

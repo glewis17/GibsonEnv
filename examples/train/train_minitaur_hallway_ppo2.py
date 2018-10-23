@@ -46,8 +46,8 @@ def train(num_timesteps, seed):
     config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'configs', 'minitaur_hallway_rgb_train.yaml')
     print(config_file)
 
-    step_limit = 1000
-    num_eps_per_batch = 3
+    step_limit = 100
+    num_eps_per_batch = 5
     nbatch_size = int(step_limit*num_eps_per_batch)
     nminibatches=5
 
@@ -69,7 +69,7 @@ def train(num_timesteps, seed):
         lr=lambda f : f * 2e-4,
         cliprange=lambda f : f * 0.2,
         total_timesteps=int(num_timesteps * 1.1),
-        save_interval=5,
+        save_interval=1,
         sensor= False,
         reload_name=args.reload_name)
     

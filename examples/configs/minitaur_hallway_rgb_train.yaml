@@ -8,7 +8,7 @@ fov: 1.57
 is_discrete: false
 
 use_filler: true
-display_ui: false
+display_ui: true
 show_diagnostics: false
 ui_num: 1
 ui_components: [RGB_FILLED]
@@ -25,7 +25,7 @@ resolution: 128
 
 speed:
   timestep: 0.001
-  frameskip: 200
+  frameskip: 100
 
 mode: headless #gui|headless
 verbose: false

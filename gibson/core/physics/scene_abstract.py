@@ -67,7 +67,7 @@ class World:
         #p.resetSimulation()
         p.setGravity(0, 0, -self.gravity)
         #p.setDefaultContactERP(0.9)
-        p.setPhysicsEngineParameter(fixedTimeStep=self.timestep, numSolverIterations=50)
+        p.setPhysicsEngineParameter(fixedTimeStep=self.timestep, numSolverIterations=50, numSubSteps=1)
 
     def step(self, frame_skip):
         if self._is_render:
