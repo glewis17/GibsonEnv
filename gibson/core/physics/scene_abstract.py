@@ -13,6 +13,7 @@ class Scene:
         self.timestep = timestep
         self.frame_skip = frame_skip
         self.env = env
+        self.dt = timestep
 
         self.cpp_world = World(gravity, timestep, frame_skip)
 

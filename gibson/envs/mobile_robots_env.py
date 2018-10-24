@@ -61,6 +61,7 @@ class TurtlebotNavigateEnv(CameraRobotEnv):
         potential_old = self.potential
         self.potential = self.robot.calc_potential()
         progress = float(self.potential - potential_old)
+        progress = 0
 
         feet_collision_cost = 0.0
         for i, f in enumerate(

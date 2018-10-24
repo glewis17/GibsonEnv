@@ -13,15 +13,6 @@ import pybullet as p
 import gym
 from transforms3d.euler import euler2quat
 
-
-tracking_camera = {
-    'yaw': 20,
-    'z_offset': 0.3,
-    'distance': 2,
-    'pitch': -20
-}
-
-
 class MinitaurBase(WalkerBase):
     model_type = "URDF"
     default_scale = 1
