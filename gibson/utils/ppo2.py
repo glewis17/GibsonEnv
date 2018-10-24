@@ -257,7 +257,6 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         lrnow = lr(frac)
         cliprangenow = cliprange(frac)
         obs, returns, masks, actions, values, neglogpacs, states, epinfos = runner.run() #pylint: disable=E0632
-        #print("ep infos", epinfos)
         epinfobuf.extend(epinfos)
         mblossvals = []
         if states is None: # nonrecurrent version

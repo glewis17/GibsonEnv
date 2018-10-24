@@ -37,7 +37,10 @@ class TurtlebotBaseEnv(CameraRobotEnv):
         self.step_limit = step_limit
         self.steps = 0
 
-        self._last_base_position = None
+    def step(self, action):
+        state = CameraRobotEnv._step(self, action)
+        self.steps += 1
+        return state
 
     def get_odom(self):
         return np.array(self.robot.body_xyz) - np.array(self.config["initial_pos"]), np.array(self.robot.body_rpy)
@@ -60,6 +63,7 @@ class TurtlebotBaseEnv(CameraRobotEnv):
         return rewards, done
 
 class TurtlebotForwardWalkEnv(TurtlebotBaseEnv):
+
     def __init__(self, config, gpu_count=0):
         self.config = self.parse_config(config)
         assert(self.config["envname"] == self.__class__.__name__ or self.config["envname"] == "Test Env")
@@ -67,6 +71,25 @@ class TurtlebotForwardWalkEnv(TurtlebotBaseEnv):
 
     def _rewards(self, action=None, debugmode=False):
         return [0,]
+
+class TurtlebotMotorServoingEnv(TurtlebotBaseEnv):
+
+    _init_base_position = None
+
+    def __init__(self, config, step_limit=None, gpu_count=0):
+        self.config = self.parse_config(config)
+        assert(self.config["envname"] == self.__class__.__name__ or self.config["envname"] == "Test Env")
+        TurtlebotBaseEnv.__init__(self, config, step_limit=step_limit, gpu_count=gpu_count)
+
+    def _rewards(self, action=None, debugmode=False):
+        if self._init_base_position is None:
+            self._init_base_position = np.array(self.robot.get_position())
+        current_base_position = np.array(self.robot.get_position())
+        progress_reward = np.linalg.norm(current_base_position - self._init_base_position)
+        reward = []
+        reward.append(self.distance_weight*progress_reward)
+        reward = sum(reward)
+        return [reward,]
 
 """
 class TurtlebotNavigateSpeedControlEnv(TurtlebotNavigateEnv):
