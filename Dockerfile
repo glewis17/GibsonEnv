@@ -22,11 +22,13 @@ RUN curl -LO http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
 RUN bash Miniconda-latest-Linux-x86_64.sh -p /miniconda -b
 RUN rm Miniconda-latest-Linux-x86_64.sh
 ENV PATH=/miniconda/bin:${PATH}
+ENV PATH_PRE $PATH
 RUN conda update -y conda
-#RUN conda create -y -n py35 python=3.5 
-#RUN conda create -y -n py27 python=2.7 
+RUN conda create -y -n py35 python=3.5 
+RUN conda create -y -n py27 python=2.7 
 
 # Install ROS stuff for python 2.7
+RUN echo "/opt/ros/kinetic/lib/python2.7/dist-packages\n/usr/lib/python2.7/dist-packages" > /miniconda/envs/py27/lib/python2.7/site-packages/ros.pth
 RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list
 RUN apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
 RUN apt-get update
@@ -38,17 +40,6 @@ RUN apt-get install -y ros-kinetic-turtlebot ros-kinetic-turtlebot-apps ros-kine
 ENV ROS_MASTER_URI http://171.64.70.117:11311
 ENV TURTLEBOT_NAME turtlebot
 ENV TURTLEBOT_3D_SENSOR kinect
-
-# Python packages from conda
-
-#ENV PATH /miniconda/envs/py35/bin:$PATH
-#ENV PATH /miniconda/envs/py27/bin:$PATH
-
-#RUN pip install http://download.pytorch.org/whl/cu90/torch-0.3.1-cp35-cp35m-linux_x86_64.whl 
-#RUN pip install http://download.pytorch.org/whl/cu90/torch-0.3.1-cp27-cp27m-linux_x86_64.whl 
-RUN conda install pytorch -c pytorch
-RUN pip install torchvision==0.2.0
-RUN pip install tensorflow==1.3
 
 WORKDIR /root
 
@@ -86,13 +77,24 @@ RUN  apt-get install -y libzmq3-dev
 ADD  . /root/mount/gibson
 WORKDIR /root/mount/gibson
 
+# Run installs for py27
+RUN conda install -n py27 numpy pyyaml
+
+ENV PATH /miniconda/envs/py27/bin:$PATH
+
 RUN bash build.sh build_local
 RUN pip install --upgrade pip==9.0.3
+RUN pip install pyzmq
 RUN pip install -e .
 
-#ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-#ENV PYTHONPATH /usr/lib/python2.7/dist-packages:/opt/ros/kinetic/lib/python2.7/dist-packages:/miniconda/lib/python2.7/site-packages:/root/mount/gibson
-ENV PYTHONPATH /miniconda/lib/python2.7/site-packages:/opt/ros/kinetic/lib/python2.7/dist-packages:/usr/lib/python2.7/dist-packages:/root/mount/gibson
+ENV PATH $PATH_PRE
+
+# Run installs for py35
+ENV PATH /miniconda/envs/py35/bin:$PATH
+
+RUN pip install pyzmq
+
+ENV PATH $PATH_PRE
 
 RUN echo 'source /opt/ros/kinetic/setup.bash' >> ~/.bashrc
 
