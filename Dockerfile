@@ -97,6 +97,7 @@ RUN pip install pyzmq
 ENV PATH $PATH_PRE
 
 RUN echo 'source /opt/ros/kinetic/setup.bash' >> ~/.bashrc
+RUN echo 'unset PYTHONPATH' >> ~/.bashrc
 
 RUN mkdir -p ~/catkin_ws/src
 RUN ln -s $PWD/examples/ros/gibson-ros/ ~/catkin_ws/src/
