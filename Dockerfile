@@ -37,9 +37,10 @@ RUN rosdep init
 RUN rosdep update
 RUN apt-get install -y ros-kinetic-turtlebot ros-kinetic-turtlebot-apps ros-kinetic-turtlebot-interactions ros-kinetic-turtlebot-simulator ros-kinetic-kobuki-ftdi
 
-ENV ROS_MASTER_URI http://171.64.70.117:11311
-ENV TURTLEBOT_NAME turtlebot
-ENV TURTLEBOT_3D_SENSOR kinect
+RUN echo "export ROS_MASTER_URI=http://171.64.70.117:11311" >> ~/.bashrc
+RUN echo "export ROS_IP=18.236.223.138" >> ~/.bashrc
+RUN echo "export TURTLEBOT_NAME=turtlebot" >> ~/.bashrc
+RUN echo "export TURTLEBOT_3D_SENSOR=kinect" >> ~/.bashrc
 
 WORKDIR /root
 
@@ -47,8 +48,8 @@ RUN apt-get install -y git build-essential cmake libopenmpi-dev
 		
 RUN apt-get install -y zlib1g-dev
 
-RUN git clone https://github.com/fxia22/baselines.git&& \
-	pip install -e baselines
+#RUN git clone https://github.com/fxia22/baselines.git&& \
+#	pip install -e baselines
 
 RUN apt-get update && apt-get install -y \
 		libglew-dev \
@@ -70,7 +71,7 @@ RUN apt-get update && apt-get install -y \
 	apt-get autoremove && \
 	rm -rf /var/cache/apk/*
 
-RUN  apt-get install -y vim wget unzip tmux
+RUN  apt-get install -y vim wget unzip tmux iputils-ping
 
 RUN  apt-get install -y libzmq3-dev
 
@@ -97,7 +98,6 @@ RUN pip install pyzmq
 ENV PATH $PATH_PRE
 
 RUN echo 'source /opt/ros/kinetic/setup.bash' >> ~/.bashrc
-RUN echo 'unset PYTHONPATH' >> ~/.bashrc
 
 RUN mkdir -p ~/catkin_ws/src
 RUN ln -s $PWD/examples/ros/gibson-ros/ ~/catkin_ws/src/
