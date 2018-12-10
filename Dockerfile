@@ -41,6 +41,7 @@ RUN echo "export ROS_MASTER_URI=http://171.64.70.117:11311" >> ~/.bashrc
 RUN echo "export ROS_IP=18.236.223.138" >> ~/.bashrc
 RUN echo "export TURTLEBOT_NAME=turtlebot" >> ~/.bashrc
 RUN echo "export TURTLEBOT_3D_SENSOR=kinect" >> ~/.bashrc
+RUN echo "export DISPLAY=:0" >> ~/.bashrc
 
 WORKDIR /root
 
