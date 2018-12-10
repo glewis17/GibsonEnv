@@ -67,9 +67,9 @@ class Goggle:
     def rgb_callback(self, data):
         img = self.bridge.imgmsg_to_cv2(data, desired_encoding="passthrough")
         img = cv2.resize(img, (320,240))
-        rows, cols, _ = img.shape
+        rows, cols = img.shape
 
-        M = cv2.getRotationMatrix2D((cols / 2, rows / 2), 180, 1)
+        M = cv2.getRotationMatrix2D((cols / 2, rows / 2), 0, 1)
         img = cv2.warpAffine(img, M, (cols, rows))
 
         #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -80,6 +80,7 @@ class Goggle:
         depth = depth.astype(np.float32) / 1000
 
         tf = transforms.ToTensor()
+        img = img[:, :, np.newaxis]
         source = tf(img)
         mask = (torch.sum(source[:3, :, :], 0) > 0).float().unsqueeze(0)
         source_depth = tf(np.expand_dims(depth, 2).astype(np.float32) / 128.0 * 255)
