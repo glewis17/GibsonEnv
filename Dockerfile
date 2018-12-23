@@ -35,7 +35,7 @@ RUN apt-get update
 RUN apt-get install -y ros-kinetic-desktop-full
 RUN rosdep init
 RUN rosdep update
-RUN apt-get install -y ros-kinetic-turtlebot ros-kinetic-turtlebot-apps ros-kinetic-turtlebot-interactions ros-kinetic-turtlebot-simulator ros-kinetic-kobuki-ftdi
+#RUN apt-get install -y ros-kinetic-turtlebot ros-kinetic-turtlebot-apps ros-kinetic-turtlebot-interactions ros-kinetic-turtlebot-simulator ros-kinetic-kobuki-ftdi
 
 RUN echo "export ROS_MASTER_URI=http://171.64.70.117:11311" >> ~/.bashrc
 RUN echo "export ROS_IP=18.236.223.138" >> ~/.bashrc
@@ -48,9 +48,6 @@ WORKDIR /root
 RUN apt-get install -y git build-essential cmake libopenmpi-dev 
 		
 RUN apt-get install -y zlib1g-dev
-
-#RUN git clone https://github.com/fxia22/baselines.git&& \
-#	pip install -e baselines
 
 RUN apt-get update && apt-get install -y \
 		libglew-dev \
@@ -85,15 +82,16 @@ RUN conda install -n py27 numpy pyyaml
 ENV PATH /miniconda/envs/py27/bin:$PATH
 
 RUN bash build.sh build_local
-RUN pip install --upgrade pip==9.0.3
+RUN pip install --upgrade pip
 RUN pip install pyzmq
-RUN pip install -e .
+RUN pip install -e . --ignore-installed mpi4py
 
 ENV PATH $PATH_PRE
 
 # Run installs for py35
 ENV PATH /miniconda/envs/py35/bin:$PATH
 
+RUN pip install --upgrade pip
 RUN pip install pyzmq
 
 ENV PATH $PATH_PRE
