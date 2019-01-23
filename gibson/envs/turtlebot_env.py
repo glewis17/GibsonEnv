@@ -1,5 +1,6 @@
 from gibson.envs.env_modalities import CameraRobotEnv, BaseRobotEnv
 from gibson.envs.env_bases import *
+from gibson.envs.env_real import RealEnv
 from gibson.core.physics.drivers.turtlebot import Turtlebot
 from transforms3d import quaternions
 import os
@@ -17,6 +18,28 @@ tracking_camera = {
     'distance': 1,
     'pitch': -20
 }
+
+class TurtlebotRealEnv(RealEnv):
+
+    def __init__(self, config, controller=None, step_limit=None, gpu_count=0):
+        self.config = self.parse_config(config)
+        RealEnv.__init__(self, self.config)
+        self.robot_introduce(Turtlebot(self.config, env=self, 
+                             use_controller=controller))
+
+    def step(self, action):
+        return RealEnv._step(self, action)
+
+    def reset(self):
+        return RealEnv._reset(self)
+
+    def calc_rewards_and_done(self, action, state):
+        rew = 0
+        done = False
+        return rew, done
+
+    def _rewards(self, action=None, debugmode=False):
+        return [0,]
 
 class TurtlebotBaseEnv(CameraRobotEnv):
 
