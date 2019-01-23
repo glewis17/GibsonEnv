@@ -7,7 +7,6 @@ from gibson.envs.goggle import Goggle
 from gibson.envs.env_bases import *
 
 class RealEnv(BaseEnv):
-    metadata = {'render.modes': []}
 
     def __init__(self, config):
         BaseEnv.__init__(self, config, "building", {})
@@ -24,11 +23,6 @@ class RealEnv(BaseEnv):
 
         self.robot = None
         self._robot_introduced = False
-
-    def parse_config(self, config):
-        with open(config, 'r') as f:
-            config_data = yaml.load(f)
-        return config_data
 
     def robot_introduce(self, robot):
         self.robot = robot
