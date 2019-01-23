@@ -18,17 +18,19 @@ class RealEnv(gym.Env):
         self.zmq_pub_socket = self.zmq_context.socket(zmq.PUB)
         self.zmq_pub_socket.bind("tcp://*:5556")
 
-    def step(self, action):
-        self.zmq_pub_socket.send_string("action %s" % str(action))
+    def _get_data(self):
         res = self.zmq_sub_socket.recv_multipart()
         data = np.frombuffer(res[1], dtype=np.uint8)
         data = np.resize(data, (240, 320, 3))
         goggle_img = self.goggles.rgb_callback(data)
-
         return goggle_img
 
+    def step(self, action):
+        self.zmq_pub_socket.send_string("action %s" % str(action))
+        return self._get_data()
+
     def reset(self):
-        pass
+        return self._get_data()
 
     def render(self, mode='human', close=False):
         pass
