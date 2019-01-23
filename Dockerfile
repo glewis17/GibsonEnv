@@ -65,8 +65,10 @@ WORKDIR /root/mount/gibson
 # Run installs for py35
 ENV PATH /miniconda/envs/py35/bin:$PATH
 
+RUN bash build.sh build_local
 RUN pip install --upgrade pip
 RUN pip install pyzmq
+RUN pip install -e .
 
 ENV PATH $PATH_PRE
 
