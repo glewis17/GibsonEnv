@@ -42,10 +42,10 @@ class Goggle:
         return model
 
     def rgb_callback(self, img):
-        rows, cols = img.shape
+        rows, cols, _ = img.shape
 
         tf = transforms.ToTensor()
-        img = img[:, :, np.newaxis]
+        #img = img[:, :, np.newaxis]
         source = tf(img)
         mask = (torch.sum(source[:3, :, :], 0) > 0).float().unsqueeze(0)
 
@@ -53,13 +53,7 @@ class Goggle:
         self.maskv.data.copy_(mask)
         recon = self.model(self.imgv, self.maskv)
         goggle_img = (recon.data.clamp(0, 1).cpu().numpy()[0].transpose(1, 2, 0) * 255).astype(np.uint8)
-
-    def depth_callback(self, data):
-        self.depth = self.bridge.imgmsg_to_cv2(data, desired_encoding="passthrough")
-        #cv2.imshow("depth", self.depth)
-        #cv2.waitKey(10)
-    def run(self):
-        rospy.spin()
+        return goggle_img
 
 #goggle = Goggle()
 #goggle.run()
