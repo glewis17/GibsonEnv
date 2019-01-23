@@ -43,6 +43,7 @@ class RealEnv(BaseEnv):
         data = np.frombuffer(res[1], dtype=np.uint8)
         data = np.resize(data, (240, 320, 3))
         goggle_img = self.goggles.rgb_callback(data)
+        goggle_img = np.moveaxis(goggle_img, -1, 0) # swap for pytorch
         return goggle_img
 
     def _step(self, action):

@@ -13,8 +13,10 @@ if __name__ == '__main__':
     env = TurtlebotRealEnv(config = args.config)
 
     print(env.reset().shape)
-    """
     print(env.action_space)
+    print(env.observation_space)
+    print(env.sensor_space)
+    """
     action = [.02, -0.02]
     while True:
       print(env.step(action))

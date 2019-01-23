@@ -5,7 +5,7 @@ target_pos: [-14.3, 45.07, 0.5]
 initial_orn: [0, 0, 1.57]
 initial_pos: [-14.3, 5, 0.3]
 fov: 1.57
-is_discrete: false
+is_discrete: true
 
 use_filler: true
 display_ui: false
@@ -21,7 +21,7 @@ random:
   random_init_rot_range: [-0.1, 0.1]
 
 output: [rgb_filled]
-resolution: 128
+resolution: 256
 
 speed:
   timestep: 0.001
