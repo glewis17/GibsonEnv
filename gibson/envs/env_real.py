@@ -41,7 +41,10 @@ class RealEnv(BaseEnv):
         data = np.resize(data, (240, 320, 3))
         goggle_img = self.goggles.rgb_callback(data)
         #goggle_img = np.moveaxis(goggle_img, -1, 0) # swap for pytorch
-        return goggle_img
+        obs = {}
+        obs["rgb_filled"] = goggle_img
+        obs["nonviz_sensor"] = np.zeros(2)
+        return obs
 
     def _step(self, action):
         self.zmq_pub_socket.send_string("action %s" % str(action))
