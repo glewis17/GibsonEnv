@@ -2,30 +2,35 @@ import numpy as np
 import zmq
 import gym, gym.spaces
 import yaml
+import cv2
+from scipy.misc import imresize
+import matplotlib.pyplot as plt
+import threading
+import time
 
 from gibson.envs.goggle import Goggle
 from gibson.envs.env_bases import *
+from gibson.envs.env_ui import *
+
+TURTLEBOT_IP = '171.64.70.236'
+PORT = 5559
 
 class RealEnv(BaseEnv):
 
     def __init__(self, config):
         BaseEnv.__init__(self, config, "building", {})
+        
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.REQ)
+        self.socket.connect("tcp://{}:{}".format(TURTLEBOT_IP, PORT))
 
-        self.goggles = Goggle()
-        self.zmq_context = zmq.Context()
-
-        self.zmq_sub_socket = self.zmq_context.socket(zmq.SUB)
-        self.zmq_sub_socket.connect("tcp://171.64.70.204:5556")
-        self.zmq_sub_socket.setsockopt_string(zmq.SUBSCRIBE, "image")
-
-        self.zmq_pub_socket = self.zmq_context.socket(zmq.PUB)
-        self.zmq_pub_socket.bind("tcp://*:5556")
-
-        self.robot = None
-        self._robot_introduced = False
+        if self.config["display_ui"]:
+            self.port_ui = 5552
+            if self.config["display_ui"]:
+                self.UI = OneViewUI(self.config["resolution"], self, self.port_ui)
 
     def __del__(self):
-        self.zmq_context.destroy()
+        self.context.destroy()
 
     def robot_introduce(self, robot):
         self.robot = robot
@@ -35,27 +40,45 @@ class RealEnv(BaseEnv):
         self.sensor_space = self.robot.sensor_space
         self._robot_introduced = True
 
-    def _get_data(self):
-        res = self.zmq_sub_socket.recv_multipart()
-        data = np.frombuffer(res[1], dtype=np.uint8)
-        data = np.resize(data, (240, 320, 3))
-        goggle_img = self.goggles.rgb_callback(data)
-        #goggle_img = np.moveaxis(goggle_img, -1, 0) # swap for pytorch
-        obs = {}
-        obs["rgb_filled"] = goggle_img
-        obs["nonviz_sensor"] = np.zeros(2)
-        return obs
-
     def _step(self, action):
-        self.zmq_pub_socket.send_string("action %s" % str(action))
-        obs = self._get_data()
-        rew = 0
-        env_done = False
-        info = {}
-        return obs, rew, env_done, info
+        self.socket.send_string("action %s" % str(action))
+        data = self.socket.recv_multipart()
+        data = np.frombuffer(data[1], dtype=np.uint8)
+        data = np.resize(data, (240, 320, 3))
+        self.obs = {}
+        self.obs["rgb_filled"] = data[:,:,::-1]
+        self.obs["nonviz_sensor"] = np.zeros(3)
+        if self.config["display_ui"]:
+            self.UI.refresh()
+            self.UI.update_view(self.render(), View.RGB_FILLED)
+        return self.obs, 0, False, {}
 
     def _reset(self):
-        return self._get_data()
+        print("Sent action to robot")
+        self.socket.send_string("action 3")
+        print("Waiting for reply from robot")
+        data = self.socket.recv_multipart()
+        data = np.frombuffer(data[1], dtype=np.uint8)
+        data = np.resize(data, (240, 320, 3))
+        self.obs = {}
+        self.obs["rgb_filled"] = data[:,:,::-1]
+        self.obs["nonviz_sensor"] = np.zeros(3)
+        if self.config["display_ui"]:
+            self.UI.refresh()
+            self.UI.update_view(self.render(), View.RGB_FILLED)
+        return self.obs
 
     def render(self, mode='human', close=False):
-        return None
+        img = imresize(self.obs["rgb_filled"][:,40:280], (256, 256, 3))
+        return img
+
+    def get_keys_to_action(self):
+        return self.robot.keys_to_action
+
+    def get_key_pressed(self, relevant=None):
+        pressed_keys = []
+        events = p.getKeyboardEvents()
+        key_codes = events.keys()
+        for key in key_codes:
+            pressed_keys.append(key)
+        return pressed_keys
