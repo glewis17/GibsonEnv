@@ -12,7 +12,7 @@ from gibson.envs.goggle import Goggle
 from gibson.envs.env_bases import *
 from gibson.envs.env_ui import *
 
-TURTLEBOT_IP = '171.64.70.236'
+TURTLEBOT_IP = '171.64.70.150'
 PORT = 5559
 
 class RealEnv(BaseEnv):
@@ -43,6 +43,7 @@ class RealEnv(BaseEnv):
     def _step(self, action):
         self.socket.send_string("action %s" % str(action))
         data = self.socket.recv_multipart()
+        timestep = data[2].decode("utf-8")
         data = np.frombuffer(data[1], dtype=np.uint8)
         data = np.resize(data, (240, 320, 3))
         self.obs = {}
@@ -51,7 +52,7 @@ class RealEnv(BaseEnv):
         if self.config["display_ui"]:
             self.UI.refresh()
             self.UI.update_view(self.render(), View.RGB_FILLED)
-        return self.obs, 0, False, {}
+        return self.obs, 0, False, {'timestep': timestep}
 
     def _reset(self):
         print("Sent action to robot")
