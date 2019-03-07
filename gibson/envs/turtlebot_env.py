@@ -19,8 +19,7 @@ tracking_camera = {
     'pitch': -20
 }
 
-class TurtlebotRealEnv(RealEnv):
-
+class TurtlebotRealNavigateEnv(RealEnv):
     def __init__(self, config, controller=None, step_limit=None, gpu_count=0):
         self.config = self.parse_config(config)
         RealEnv.__init__(self, self.config)
@@ -40,6 +39,43 @@ class TurtlebotRealEnv(RealEnv):
 
     def _rewards(self, action=None, debugmode=False):
         return [0,]
+
+class TurtlebotRealPlanningEnv(RealEnv):
+    def __init__(self, config, controller=None, step_limit=None, gpu_count=0):
+        self.config = self.parse_config(config)
+        RealEnv.__init__(self, self.config)
+        self.robot_introduce(Turtlebot(self.config, env=self, 
+                             use_controller=controller))
+        self.goal_location = np.array([self.config["target_pos"][0], self.config["target_pos"][1]])
+        self.target_dim = self.config["target_dim"]
+
+    def step(self, action):
+        self.obs, rew, done, info = RealEnv._step(self, action)
+        self.obs["target"] = self.get_target_observation()
+        return self.obs, rew, done, info
+
+    def reset(self):
+        self.obs = RealEnv._reset(self)
+        self.obs["target"] = self.get_target_observation()
+        return self.obs, rew, done, info
+
+    def calc_rewards_and_done(self, action, state):
+        rew = 0
+        done = False
+        return rew, done
+
+    def _rewards(self, action=None, debugmode=False):
+        return [0,]
+
+    def get_target_observation(self):
+        self.agent_pos = np.array([self.odom["x"], self.odom["y"]])
+        self.target_vector = self.goal_location - self.agent_pos
+        r = np.linalg.norm(self.target_vector)
+        angle_to_target = np.arctan2(self.target_vector[1], self.target_vector[0])
+        target_3vector = np.array([np.cos(angle_to_target), np.sin(angle_to_target), r])
+        target_stack =  np.moveaxis(np.tile(target_3vector, (self.target_dim,self.target_dim,1)), -1, 0)
+        return target_stack
+    
 
 class TurtlebotBaseEnv(CameraRobotEnv):
 
