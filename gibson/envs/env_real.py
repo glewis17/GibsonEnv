@@ -7,12 +7,13 @@ from scipy.misc import imresize
 import matplotlib.pyplot as plt
 import threading
 import time
+import json
 
 from gibson.envs.goggle import Goggle
 from gibson.envs.env_bases import *
 from gibson.envs.env_ui import *
 
-TURTLEBOT_IP = '171.64.70.150'
+TURTLEBOT_IP = '171.64.70.215'
 PORT = 5559
 
 class RealEnv(BaseEnv):
@@ -23,6 +24,7 @@ class RealEnv(BaseEnv):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect("tcp://{}:{}".format(TURTLEBOT_IP, PORT))
+        #self.goggles = Goggle()
 
         if self.config["display_ui"]:
             self.port_ui = 5552
@@ -44,10 +46,14 @@ class RealEnv(BaseEnv):
         self.socket.send_string("action %s" % str(action))
         data = self.socket.recv_multipart()
         timestep = data[2].decode("utf-8")
+        odom = None
+        if len(data) > 3:
+            odom = json.loads(data[3].decode("utf-8"))
         data = np.frombuffer(data[1], dtype=np.uint8)
         data = np.resize(data, (240, 320, 3))
         self.obs = {}
-        self.obs["rgb_filled"] = data[:,:,::-1]
+        #self.obs["rgb_filled"] = self.goggles.rgb_callback(data[:,:,::-1]-np.zeros_like(data))
+        self.obs["rgb_filled"] = data[:,:,::-1]-np.zeros_like(data)
         self.obs["nonviz_sensor"] = np.zeros(3)
         if self.config["display_ui"]:
             self.UI.refresh()
@@ -62,7 +68,8 @@ class RealEnv(BaseEnv):
         data = np.frombuffer(data[1], dtype=np.uint8)
         data = np.resize(data, (240, 320, 3))
         self.obs = {}
-        self.obs["rgb_filled"] = data[:,:,::-1]
+        #self.obs["rgb_filled"] = self.goggles.rgb_callback(data[:,:,::-1]-np.zeros_like(data))
+        self.obs["rgb_filled"] = data[:,:,::-1]-np.zeros_like(data)
         self.obs["nonviz_sensor"] = np.zeros(3)
         if self.config["display_ui"]:
             self.UI.refresh()
