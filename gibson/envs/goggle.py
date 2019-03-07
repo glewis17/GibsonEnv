@@ -43,7 +43,6 @@ class Goggle:
 
     def rgb_callback(self, img):
         rows, cols, _ = img.shape
-        print(img.shape)
 
         tf = transforms.ToTensor()
         #img = img[:, :, np.newaxis]

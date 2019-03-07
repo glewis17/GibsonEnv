@@ -58,7 +58,7 @@ class RealEnv(BaseEnv):
         if self.config["display_ui"]:
             self.UI.refresh()
             self.UI.update_view(self.render(), View.RGB_FILLED)
-        return self.obs, 0, False, {'timestep': timestep}
+        return self.obs, 0, False, {'timestep': timestep, 'odom': odom}
 
     def _reset(self):
         print("Sent action to robot")
