@@ -65,6 +65,10 @@ class RealEnv(BaseEnv):
         self.socket.send_string("action 3")
         print("Waiting for reply from robot")
         data = self.socket.recv_multipart()
+        odom = None
+        if len(data) > 3:
+            odom = json.loads(data[3].decode("utf-8"))
+        timestep = data[2].decode("utf-8")
         data = np.frombuffer(data[1], dtype=np.uint8)
         data = np.resize(data, (240, 320, 3))
         self.obs = {}
@@ -74,7 +78,7 @@ class RealEnv(BaseEnv):
         if self.config["display_ui"]:
             self.UI.refresh()
             self.UI.update_view(self.render(), View.RGB_FILLED)
-        return self.obs
+        return self.obs, 0, False, {'timestep': timestep, 'odom': odom}
 
     def render(self, mode='human', close=False):
         img = imresize(self.obs["rgb_filled"][:,40:280], (256, 256, 3))

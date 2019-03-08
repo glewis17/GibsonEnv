@@ -26,10 +26,10 @@ class TurtlebotRealNavigateEnv(RealEnv):
         self.robot_introduce(Turtlebot(self.config, env=self, 
                              use_controller=controller))
 
-    def step(self, action):
+    def _step(self, action):
         return RealEnv._step(self, action)
 
-    def reset(self):
+    def _reset(self):
         return RealEnv._reset(self)
 
     def calc_rewards_and_done(self, action, state):
@@ -49,15 +49,18 @@ class TurtlebotRealPlanningEnv(RealEnv):
         self.goal_location = np.array([self.config["target_pos"][0], self.config["target_pos"][1]])
         self.target_dim = self.config["target_dim"]
 
-    def step(self, action):
+    def _step(self, action):
         self.obs, rew, done, info = RealEnv._step(self, action)
+        self.odom = info["odom"]
         self.obs["target"] = self.get_target_observation()
         return self.obs, rew, done, info
 
-    def reset(self):
-        self.obs = RealEnv._reset(self)
+    def _reset(self):
+        self.obs, rew, done, info = RealEnv._reset(self)
+        self.odom = info["odom"]
         self.obs["target"] = self.get_target_observation()
-        return self.obs, rew, done, info
+        print(self.obs["target"].shape)
+        return self.obs
 
     def calc_rewards_and_done(self, action, state):
         rew = 0
@@ -73,7 +76,8 @@ class TurtlebotRealPlanningEnv(RealEnv):
         r = np.linalg.norm(self.target_vector)
         angle_to_target = np.arctan2(self.target_vector[1], self.target_vector[0])
         target_3vector = np.array([np.cos(angle_to_target), np.sin(angle_to_target), r])
-        target_stack =  np.moveaxis(np.tile(target_3vector, (self.target_dim,self.target_dim,1)), -1, 0)
+        #target_stack =  np.moveaxis(np.tile(target_3vector, (self.target_dim,self.target_dim,1)), -1, 0)
+        target_stack = target_3vector
         return target_stack
     
 
