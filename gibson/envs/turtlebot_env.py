@@ -30,7 +30,8 @@ class TurtlebotRealNavigateEnv(RealEnv):
         return RealEnv._step(self, action)
 
     def _reset(self):
-        return RealEnv._reset(self)
+        obs, rew, done, info = RealEnv._reset(self)
+        return obs
 
     def calc_rewards_and_done(self, action, state):
         rew = 0
@@ -75,7 +76,9 @@ class TurtlebotRealPlanningEnv(RealEnv):
         self.target_vector = self.goal_location - self.agent_pos
         r = np.linalg.norm(self.target_vector)
         angle_to_target = np.arctan2(self.target_vector[1], self.target_vector[0])
-        target_3vector = np.array([np.cos(angle_to_target), np.sin(angle_to_target), r])
+        theta = angle_to_target - self.odom["heading"]
+        #target_3vector = np.array([np.cos(angle_to_target), np.sin(angle_to_target), r])
+        target_3vector = np.array([np.cos(theta), np.sin(theta), r])
         #target_stack =  np.moveaxis(np.tile(target_3vector, (self.target_dim,self.target_dim,1)), -1, 0)
         target_stack = target_3vector
         return target_stack
