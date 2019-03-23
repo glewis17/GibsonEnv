@@ -45,35 +45,46 @@ class RealEnv(BaseEnv):
     def _step(self, action):
         self.socket.send_string("action %s" % str(action))
         data = self.socket.recv_multipart()
+        img = np.frombuffer(data[1], dtype=np.uint8)
+        img = np.resize(img, (240, 320, 3))
+        img = img[:,:,::-1]-np.zeros_like(img)
         timestep = data[2].decode("utf-8")
         odom = None
         if len(data) > 3:
             odom = json.loads(data[3].decode("utf-8"))
-        data = np.frombuffer(data[1], dtype=np.uint8)
-        data = np.resize(data, (240, 320, 3))
+        depth = None
+        if len(data) > 4:
+            depth = np.frombuffer(data[4], dtype=np.int16)
+            depth = np.resize(depth, (240, 320, 1))
         self.obs = {}
-        #self.obs["rgb_filled"] = self.goggles.rgb_callback(data[:,:,::-1]-np.zeros_like(data))
-        self.obs["rgb_filled"] = data[:,:,::-1]-np.zeros_like(data)
+        #self.obs["rgb_filled"] = self.goggles.rgb_callback(img, depth)
+        self.obs["rgb_filled"] = img
         self.obs["nonviz_sensor"] = np.zeros(3)
         if self.config["display_ui"]:
             self.UI.refresh()
             self.UI.update_view(self.render(), View.RGB_FILLED)
-        return self.obs, 0, False, {'timestep': timestep, 'odom': odom}
+        return self.obs, 0, False, {'timestep': timestep, 'odom': odom, 'depth': depth}
 
     def _reset(self):
         print("Sent action to robot")
         self.socket.send_string("action 3")
         print("Waiting for reply from robot")
         data = self.socket.recv_multipart()
+        img = np.frombuffer(data[1], dtype=np.uint8)
+        img = np.resize(img, (240, 320, 3))
+        img = img[:, :, ::-1]-np.zeros_like(img)
+        img = np.ones_like(img)
+        timestep = data[2].decode("utf-8")
         odom = None
         if len(data) > 3:
             odom = json.loads(data[3].decode("utf-8"))
-        timestep = data[2].decode("utf-8")
-        data = np.frombuffer(data[1], dtype=np.uint8)
-        data = np.resize(data, (240, 320, 3))
+        depth = None
+        if len(data) > 4:
+            depth = np.frombuffer(data[4], dtype=np.uint16)
+            depth = np.resize(depth, (240, 320, 1))
         self.obs = {}
-        #self.obs["rgb_filled"] = self.goggles.rgb_callback(data[:,:,::-1]-np.zeros_like(data))
-        self.obs["rgb_filled"] = data[:,:,::-1]-np.zeros_like(data)
+        #self.obs["rgb_filled"] = self.goggles.rgb_callback(img, depth)
+        self.obs["rgb_filled"] = img
         self.obs["nonviz_sensor"] = np.zeros(3)
         if self.config["display_ui"]:
             self.UI.refresh()

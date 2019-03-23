@@ -41,13 +41,18 @@ class Goggle:
         print(model)
         return model
 
-    def rgb_callback(self, img):
+    def rgb_callback(self, img, depth):
         rows, cols, _ = img.shape
 
         tf = transforms.ToTensor()
         #img = img[:, :, np.newaxis]
         source = tf(img)
         mask = (torch.sum(source[:3, :, :], 0) > 0).float().unsqueeze(0)
+        depth = depth.astype(np.float32) / 1000 / 128.0 * 255
+        #depth = np.expand_dims(depth,2).astype(np.float32) / 128.0
+        print(depth.shape)
+        source_depth = tf(depth)
+        mask = torch.cat([source_depth, mask], 0)
 
         self.imgv.data.copy_(source)
         self.maskv.data.copy_(mask)
